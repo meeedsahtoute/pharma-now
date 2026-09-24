@@ -81,11 +81,12 @@ export function usePharmacies() {
   // 1. Dynamic Geolocation Attempt on App Load
   const requestLocation = useCallback(async () => {
     if (testOverrides.forceLocationPermissionDenied) {
-      const cityCoords = getDefaultCityLocation(filters.selectedCity);
+      const activeCity = filters.selectedCity || 'Casablanca';
+      const cityCoords = getDefaultCityLocation(activeCity);
       setLocation({
         latitude: cityCoords.lat,
         longitude: cityCoords.lng,
-        city: filters.selectedCity,
+        city: activeCity,
         region: 'Morocco Region',
         country: 'Morocco',
         countryCode: 'MA',
@@ -93,7 +94,7 @@ export function usePharmacies() {
         isPermissionGranted: false,
         isPermissionDenied: true,
         isLocating: false,
-        error: 'Location access simulated denied.'
+        error: 'Location unavailable. Select your city to continue.'
       });
       return;
     }
@@ -122,12 +123,13 @@ export function usePharmacies() {
         setFilters(prev => ({ ...prev, selectedCity: pos.city! }));
       }
     } catch (err: any) {
-      console.info('[PHARMA NOW] Geolocation fallback engaged:', err.message);
-      const defaultCoords = getDefaultCityLocation(filters.selectedCity);
+      console.info('[PHARMA NOW] Geolocation failed or denied:', err.message);
+      const activeCity = filters.selectedCity || 'Casablanca';
+      const cityCoords = getDefaultCityLocation(activeCity);
       setLocation({
-        latitude: defaultCoords.lat,
-        longitude: defaultCoords.lng,
-        city: filters.selectedCity,
+        latitude: cityCoords.lat,
+        longitude: cityCoords.lng,
+        city: activeCity,
         region: 'Morocco Region',
         country: 'Morocco',
         countryCode: 'MA',
@@ -135,7 +137,7 @@ export function usePharmacies() {
         isPermissionGranted: false,
         isPermissionDenied: true,
         isLocating: false,
-        error: err.message
+        error: 'Location unavailable. Select your city to continue.'
       });
     }
   }, [filters.selectedCity, testOverrides.forceLocationPermissionDenied]);

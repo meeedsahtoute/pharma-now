@@ -139,7 +139,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
 
     locationUsingGps: 'Using your live GPS location',
     locationDisabled: 'Location access is disabled',
-    locationDisabledSubtitle: 'Enable location permission or choose a city manually to view nearby open pharmacies.',
+    locationDisabledSubtitle: 'Location unavailable. Select your city to continue.',
     locationEnableBtn: 'Enable GPS',
     locationSelectCityBtn: 'Choose a City',
     locationDetecting: 'Detecting your location...',
@@ -247,7 +247,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
 
     locationUsingGps: 'Utilisation de votre position GPS en direct',
     locationDisabled: 'Accès à la géolocalisation désactivé',
-    locationDisabledSubtitle: 'Activez la géolocalisation ou choisissez une ville manuellement pour voir les pharmacies proches.',
+    locationDisabledSubtitle: 'Localisation indisponible. Sélectionnez votre ville pour continuer.',
     locationEnableBtn: 'Activer le GPS',
     locationSelectCityBtn: 'Choisir une ville',
     locationDetecting: 'Détection de votre position...',
@@ -355,7 +355,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
 
     locationUsingGps: 'جاري استخدام موقعك الحالي عبر GPS',
     locationDisabled: 'خدمة تحديد الموقع معطلة',
-    locationDisabledSubtitle: 'قم بتفعيل صلاحية الموقع أو اختر مدينة يدوياً لإظهار الصيدليات القريبة.',
+    locationDisabledSubtitle: 'الموقع غير متاح. اختر مدينتك للمتابعة.',
     locationEnableBtn: 'تفعيل GPS',
     locationSelectCityBtn: 'اختيار مدينة',
     locationDetecting: 'جاري تحديد موقعك...',

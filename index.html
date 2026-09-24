@@ -22,6 +22,27 @@
             document.documentElement.setAttribute('data-theme', 'light');
           }
         } catch (e) {}
+
+        // Immediate self-healing check for stale SW asset 404s
+        window.addEventListener('error', function(e) {
+          if (e.target && (e.target.tagName === 'SCRIPT' || e.target.tagName === 'LINK')) {
+            console.warn('[PHARMA NOW HTML] Asset fail detected. Clearing SW & caches...');
+            if (!sessionStorage.getItem('pharma_now_html_recovered')) {
+              sessionStorage.setItem('pharma_now_html_recovered', 'true');
+              if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function(regs) {
+                  regs.forEach(function(r) { r.unregister(); });
+                });
+              }
+              if ('caches' in window) {
+                caches.keys().then(function(keys) {
+                  keys.forEach(function(k) { caches.delete(k); });
+                });
+              }
+              setTimeout(function() { window.location.reload(); }, 300);
+            }
+          }
+        }, true);
       })();
     </script>
   </head>

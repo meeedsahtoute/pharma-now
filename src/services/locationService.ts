@@ -74,8 +74,8 @@ export async function reverseGeocodeCoords(lat: number, lng: number): Promise<{
       const data = await response.json();
       const addr = data.address || {};
 
-      const city = addr.city || addr.town || addr.village || addr.municipality || addr.county || 'Oujda';
-      const region = addr.state || addr.region || 'Oriental';
+      const city = addr.city || addr.town || addr.village || addr.municipality || addr.county || '';
+      const region = addr.state || addr.region || 'Morocco';
       const country = addr.country || 'Morocco';
       const countryCode = (addr.country_code || 'MA').toUpperCase();
 
@@ -86,8 +86,8 @@ export async function reverseGeocodeCoords(lat: number, lng: number): Promise<{
   }
 
   return {
-    city: 'Oujda',
-    region: 'Oriental',
+    city: '',
+    region: 'Morocco',
     country: 'Morocco',
     countryCode: 'MA'
   };
