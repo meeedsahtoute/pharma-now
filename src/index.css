@@ -1,10 +1,29 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --bg-page: #f8fafc;
+  --text-page: #0f172a;
+  --bg-card: #ffffff;
+  --border-color: #e2e8f0;
+  --muted-text: #64748b;
+}
+
+.dark {
+  --bg-page: #020617;
+  --text-page: #f8fafc;
+  --bg-card: #0f172a;
+  --border-color: #1e293b;
+  --muted-text: #94a3b8;
+}
+
 body {
-  background-color: #020617;
-  color: #f8fafc;
+  background-color: var(--bg-page);
+  color: var(--text-page);
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 /* Custom scrollbars */
@@ -13,32 +32,32 @@ body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #020617;
+  background: var(--bg-page);
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: var(--border-color);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: var(--muted-text);
 }
 
-/* Leaflet dark theme tweaks */
+/* Leaflet map light/dark theme tweaks */
 .leaflet-container {
-  background-color: #020617 !important;
+  background-color: var(--bg-page) !important;
   font-family: inherit !important;
 }
 
 .leaflet-popup-content-wrapper {
-  background: #0f172a !important;
-  color: #f8fafc !important;
+  background: var(--bg-card) !important;
+  color: var(--text-page) !important;
   border-radius: 16px !important;
-  border: 1px solid #334155 !important;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.2) !important;
 }
 
 .leaflet-popup-tip {
-  background: #0f172a !important;
+  background: var(--bg-card) !important;
 }
 
 .custom-pharmacy-marker {

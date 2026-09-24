@@ -226,20 +226,26 @@ export function usePharmacies() {
       await new Promise(res => setTimeout(res, 1800));
     }
 
-    const result = await fetchNearbyPharmacies(
-      lat,
-      lng,
-      filters.maxRadiusKm * 1000,
-      testOverrides.forceApiFailure,
-      location.city
-    );
+    try {
+      const result = await fetchNearbyPharmacies(
+        lat,
+        lng,
+        filters.maxRadiusKm * 1000,
+        testOverrides.forceApiFailure,
+        location.city
+      );
 
-    setRawPharmacies(result.pharmacies);
-    setIsFallbackMode(result.isFallback);
-    if (result.errorMessage) {
-      setErrorMessage(result.errorMessage);
+      setRawPharmacies(result.pharmacies);
+      setIsFallbackMode(result.isFallback);
+      if (result.errorMessage) {
+        setErrorMessage(result.errorMessage);
+      }
+    } catch (err: any) {
+      console.error('[usePharmacies] Error loading pharmacies:', err);
+      setErrorMessage(err?.message || 'Failed to load pharmacies');
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, [location.latitude, location.longitude, location.city, filters.maxRadiusKm, testOverrides.forceApiFailure, testOverrides.forceSlowNetwork]);
 
   useEffect(() => {

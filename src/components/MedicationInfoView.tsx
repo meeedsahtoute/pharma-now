@@ -84,18 +84,18 @@ export const MedicationInfoView: React.FC<MedicationInfoViewProps> = ({
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       
       {/* Header Banner */}
-      <div className="rounded-3xl bg-slate-900 text-white p-6 sm:p-10 border border-slate-800 shadow-xl mb-8">
+      <div className="rounded-3xl bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-6 sm:p-10 border border-slate-200 dark:border-slate-800 shadow-xl mb-8">
         <div className="max-w-3xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold uppercase tracking-wider mb-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider mb-4">
             <Pill className="w-3.5 h-3.5" />
             <span>Medication Reference • ANAM Morocco / WHO (100+ Entries)</span>
           </div>
 
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-3 tracking-tight">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white mb-3 tracking-tight">
             Morocco Medication Reference Database
           </h1>
 
-          <p className="text-sm sm:text-base text-slate-300 leading-relaxed mb-6">
+          <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed mb-6">
             Explore 100+ verified therapeutic entries, DCI active ingredients, brand names in Morocco, precautions, warnings, and storage rules.
           </p>
 
@@ -110,7 +110,7 @@ export const MedicationInfoView: React.FC<MedicationInfoViewProps> = ({
                 setCurrentPage(1);
               }}
               placeholder="Search medicine, DCI ingredient or brand (e.g., Paracétamol, Doliprane, Augmentin, Spasfon)..."
-              className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-slate-950/80 border border-slate-700 text-white placeholder-slate-400 text-sm font-medium focus:outline-none focus:border-emerald-500"
+              className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 text-sm font-medium focus:outline-none focus:border-emerald-500"
             />
           </div>
         </div>

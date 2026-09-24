@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MapPin, Globe, Moon, Sun, BookOpen, Pill, Sparkles } from 'lucide-react';
 import { useTranslation } from '../context/LanguageContext';
+import { useTheme } from '../context/ThemeContext';
 import type { Language } from '../i18n/translations';
 
 export type NavTab = 'find' | 'duty' | 'cities' | 'health' | 'medications' | 'how' | 'ai';
@@ -8,8 +9,6 @@ export type NavTab = 'find' | 'duty' | 'cities' | 'health' | 'medications' | 'ho
 interface HeaderProps {
   currentCity: string;
   onCityClick: () => void;
-  isDarkMode: boolean;
-  onToggleDarkMode: () => void;
   activeTab: NavTab;
   onTabChange: (tab: NavTab) => void;
 }
@@ -17,12 +16,11 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({
   currentCity,
   onCityClick,
-  isDarkMode,
-  onToggleDarkMode,
   activeTab,
   onTabChange
 }) => {
   const { t, language, setLanguage, isRTL } = useTranslation();
+  const { isDarkMode, toggleTheme } = useTheme();
   const [showLangMenu, setShowLangMenu] = useState(false);
   const langMenuRef = useRef<HTMLDivElement>(null);
 
@@ -43,7 +41,7 @@ export const Header: React.FC<HeaderProps> = ({
   }, []);
 
   return (
-    <header className="sticky top-0 z-40 bg-white/90 dark:bg-slate-950/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800/80 text-slate-900 dark:text-slate-100 transition-colors">
+    <header className="sticky top-0 z-40 bg-white/90 dark:bg-slate-950/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800/80 text-slate-900 dark:text-slate-100 transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-3 sm:gap-6">
           
@@ -191,11 +189,11 @@ export const Header: React.FC<HeaderProps> = ({
               )}
             </div>
 
-            {/* Dark/Light Mode Toggle */}
+            {/* Dark/Light Mode Toggle Button */}
             <button
-              onClick={onToggleDarkMode}
-              className="p-2 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 transition"
-              title="Toggle theme"
+              onClick={toggleTheme}
+              className="p-2 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 transition active:scale-95"
+              title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
             >
               {isDarkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-emerald-600" />}
             </button>

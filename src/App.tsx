@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { usePharmacies } from './hooks/usePharmacies';
 import { usePWA } from './hooks/usePWA';
 import { useTranslation } from './context/LanguageContext';
@@ -30,8 +30,11 @@ import type { Pharmacy } from './types/pharmacy';
 import type { HealthArticle } from './data/healthData';
 import { Map, List } from 'lucide-react';
 
+import { useTheme } from './context/ThemeContext';
+
 export function App() {
   const { t } = useTranslation();
+  const { isDarkMode } = useTheme();
 
   const {
     location,
@@ -56,20 +59,11 @@ export function App() {
   const [selectedPharmacy, setSelectedPharmacy] = useState<Pharmacy | null>(null);
   const [selectedHealthArticle, setSelectedHealthArticle] = useState<HealthArticle | null>(null);
 
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
   const [mobileTab, setMobileTab] = useState<'list' | 'map'>('list');
   const [activeTab, setActiveTab] = useState<NavTab>('find');
 
   const [showCityModal, setShowCityModal] = useState<boolean>(false);
   const [showHowItWorksModal, setShowHowItWorksModal] = useState<boolean>(false);
-
-  useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [isDarkMode]);
 
   const handleResetFilters = () => {
     setFilters(prev => ({
@@ -100,7 +94,7 @@ export function App() {
   const onDutyCount = pharmacies.filter(p => p.calculatedStatus?.status === 'on_duty').length;
 
   return (
-    <div className={`min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col font-sans transition-colors ${isDarkMode ? 'dark' : ''}`}>
+    <div className={`min-h-screen min-h-[100dvh] bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col font-sans transition-colors duration-200 ${isDarkMode ? 'dark' : ''}`}>
       
       {/* Offline Alert Banner */}
       <OfflineBanner isOffline={isOffline} />
@@ -109,8 +103,6 @@ export function App() {
       <Header
         currentCity={location.city}
         onCityClick={() => setShowCityModal(true)}
-        isDarkMode={isDarkMode}
-        onToggleDarkMode={() => setIsDarkMode(prev => !prev)}
         activeTab={activeTab}
         onTabChange={handleTabChange}
       />
@@ -254,7 +246,7 @@ export function App() {
               </div>
 
               {/* Right: Interactive Map View */}
-              <div className={`md:col-span-6 lg:col-span-7 h-[calc(100vh-220px)] sticky top-24 ${mobileTab === 'map' ? 'block h-[calc(100vh-240px)]' : 'hidden md:block'}`}>
+              <div className={`md:col-span-6 lg:col-span-7 ${mobileTab === 'map' ? 'block h-[calc(100dvh-180px)] min-h-[350px]' : 'hidden md:block md:h-[calc(100dvh-220px)] md:sticky md:top-24'}`}>
                 <MapView
                   pharmacies={pharmacies}
                   location={{

@@ -47,7 +47,19 @@ export const MapView: React.FC<MapViewProps> = ({
 
     mapInstanceRef.current = map;
 
+    // ResizeObserver to automatically invalidate map size when container becomes visible or resizes (e.g. mobile tab switch)
+    const resizeObserver = new ResizeObserver(() => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+      }
+    });
+
+    if (mapContainerRef.current) {
+      resizeObserver.observe(mapContainerRef.current);
+    }
+
     return () => {
+      resizeObserver.disconnect();
       map.remove();
       mapInstanceRef.current = null;
     };
@@ -150,8 +162,14 @@ export const MapView: React.FC<MapViewProps> = ({
 
     if (pharmacies.length > 0 && !selectedPharmacy) {
       try {
-        const group = L.featureGroup(Object.values(markersRef.current));
-        map.fitBounds(group.getBounds().pad(0.15));
+        const markerList = Object.values(markersRef.current);
+        if (markerList.length > 0) {
+          const group = L.featureGroup(markerList);
+          const bounds = group.getBounds();
+          if (bounds && bounds.isValid()) {
+            map.fitBounds(bounds.pad(0.15));
+          }
+        }
       } catch (e) {
         // Safe fallback bounds
       }

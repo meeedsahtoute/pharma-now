@@ -29,26 +29,26 @@ export const EmergencySection: React.FC<EmergencySectionProps> = ({
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-6">
-      <div className="rounded-3xl bg-slate-900 dark:bg-slate-950 text-white p-6 sm:p-8 border border-slate-800 shadow-xl relative overflow-hidden">
+      <div className="rounded-3xl bg-white dark:bg-slate-950 text-slate-900 dark:text-white p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-xl relative overflow-hidden">
         
         {/* Subtle decorative glow accent */}
         <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-rose-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
         {/* Section Header */}
-        <div className="flex items-center justify-between flex-wrap gap-3 mb-6 border-b border-slate-800 pb-4">
+        <div className="flex items-center justify-between flex-wrap gap-3 mb-6 border-b border-slate-200 dark:border-slate-800 pb-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping"></span>
-              <h2 className="font-extrabold text-xl sm:text-2xl text-white">
+              <h2 className="font-extrabold text-xl sm:text-2xl text-slate-900 dark:text-white">
                 {t.emergencyTitle}
               </h2>
             </div>
-            <p className="text-xs sm:text-sm text-slate-400">
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
               {t.emergencySubtitle} ({countryData.countryName})
             </p>
           </div>
 
-          <div className="px-3 py-1.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-bold uppercase tracking-wider">
+          <div className="px-3 py-1.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs font-bold uppercase tracking-wider">
             24/7 HOTLINES
           </div>
         </div>
@@ -63,24 +63,24 @@ export const EmergencySection: React.FC<EmergencySectionProps> = ({
               <a
                 key={contact.id}
                 href={`tel:${contact.number}`}
-                className="group p-4 rounded-2xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700/80 hover:border-rose-500/50 transition flex items-center justify-between gap-3 active:scale-95"
+                className="group p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700/80 hover:border-rose-500/50 transition flex items-center justify-between gap-3 active:scale-95 shadow-sm"
               >
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-700 group-hover:scale-105 transition-transform">
+                  <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 group-hover:scale-105 transition-transform">
                     {renderIcon(contact.iconName)}
                   </div>
                   <div>
-                    <h3 className="font-bold text-sm text-white group-hover:text-rose-400 transition-colors">
+                    <h3 className="font-bold text-sm text-slate-900 dark:text-white group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">
                       {title}
                     </h3>
-                    <p className="text-[11px] text-slate-400">
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
                       {subtitle}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1 text-rose-400 font-extrabold text-lg group-hover:scale-110 transition-transform">
-                  <Phone className="w-4 h-4 fill-rose-400" />
+                <div className="flex items-center gap-1 text-rose-600 dark:text-rose-400 font-extrabold text-lg group-hover:scale-110 transition-transform">
+                  <Phone className="w-4 h-4 fill-rose-600 dark:fill-rose-400" />
                   <span>{contact.number}</span>
                 </div>
               </a>

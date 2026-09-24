@@ -121,32 +121,32 @@ export const PharmaAIView: React.FC<PharmaAIViewProps> = ({
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col min-h-[calc(100vh-140px)]">
       
       {/* Header Banner */}
-      <div className="rounded-3xl bg-slate-900 text-white p-6 sm:p-8 border border-slate-800 shadow-xl mb-6 relative overflow-hidden shrink-0">
+      <div className="rounded-3xl bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-xl mb-6 relative overflow-hidden shrink-0">
         <div className="absolute right-0 top-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
         <div className="relative z-10 max-w-2xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold uppercase tracking-wider mb-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider mb-3">
             <Sparkles className="w-3.5 h-3.5" />
             <span>PHARMA AI • Clinical Triage & Evidence Assistant</span>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white mb-2 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mb-2 tracking-tight">
             PHARMA AI
           </h1>
 
-          <p className="text-xs sm:text-sm text-slate-300 leading-relaxed mb-4">
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
             Describe how you're feeling and get safe, evidence-based health guidance connected to verified medications and local Moroccan pharmacies.
           </p>
 
           {/* Quick Starter Prompts */}
           <div className="flex items-center gap-1.5 flex-wrap text-xs font-semibold">
-            <span className="text-slate-400 font-medium text-[11px]">Quick Prompts:</span>
+            <span className="text-slate-500 dark:text-slate-400 font-medium text-[11px]">Quick Prompts:</span>
             {quickPrompts.map((p, i) => (
               <button
                 key={i}
                 disabled={isAnalyzing}
                 onClick={() => handleSendMessage(p.query)}
-                className="px-2.5 py-1 rounded-xl bg-slate-800/90 hover:bg-emerald-600 hover:text-white border border-slate-700 text-slate-200 transition text-[11px] disabled:opacity-50 active:scale-95"
+                className="px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800/90 hover:bg-emerald-600 hover:text-white border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 transition text-[11px] disabled:opacity-50 active:scale-95 shadow-sm"
               >
                 {p.label}
               </button>
