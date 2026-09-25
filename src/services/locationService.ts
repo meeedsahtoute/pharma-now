@@ -122,8 +122,18 @@ export function getCurrentUserPosition(timeoutMs = 8000): Promise<LocationResult
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
-        const lat = parseCoordinate(position.coords.latitude);
-        const lng = parseCoordinate(position.coords.longitude);
+        const rawLat = position.coords.latitude;
+        const rawLng = position.coords.longitude;
+        const lat = parseCoordinate(rawLat);
+        const lng = parseCoordinate(rawLng);
+
+        console.log('[MAP DEBUG]', {
+          rawLat,
+          rawLng,
+          parsedLat: lat,
+          parsedLng: lng,
+          source: 'locationService:geolocation'
+        });
 
         if (lat === null || lng === null || !isValidCoordinate(lat, lng)) {
           return reject(new Error('Returned geolocation coordinates are invalid'));

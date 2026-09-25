@@ -1,3 +1,5 @@
+import { isValidCoordinate, parseCoordinate } from '../utils/coordinateUtils';
+
 export interface CityLocation {
   name: string;
   nameAr: string;
@@ -73,19 +75,34 @@ export async function geocodeLocation(query: string): Promise<CityLocation | nul
       const data = await response.json();
       if (Array.isArray(data) && data.length > 0) {
         const item = data[0];
-        const result: CityLocation = {
-          name: item.name || query,
-          nameAr: item.name || query,
-          nameFr: item.name || query,
-          region: 'Morocco Region',
-          country: 'Morocco',
-          countryCode: 'MA',
-          lat: parseFloat(item.lat),
-          lng: parseFloat(item.lon),
-          displayName: item.display_name
-        };
-        geocodeCache.set(cleanQuery, result);
-        return result;
+        const rawLat = item.lat;
+        const rawLng = item.lon;
+        const parsedLat = parseCoordinate(rawLat);
+        const parsedLng = parseCoordinate(rawLng);
+
+        console.log('[MAP DEBUG]', {
+          rawLat,
+          rawLng,
+          parsedLat,
+          parsedLng,
+          source: 'geocodingService:Nominatim'
+        });
+
+        if (parsedLat !== null && parsedLng !== null && isValidCoordinate(parsedLat, parsedLng)) {
+          const result: CityLocation = {
+            name: item.name || query,
+            nameAr: item.name || query,
+            nameFr: item.name || query,
+            region: 'Morocco Region',
+            country: 'Morocco',
+            countryCode: 'MA',
+            lat: parsedLat,
+            lng: parsedLng,
+            displayName: item.display_name
+          };
+          geocodeCache.set(cleanQuery, result);
+          return result;
+        }
       }
     }
   } catch (err) {

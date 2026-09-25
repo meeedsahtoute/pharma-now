@@ -57,8 +57,19 @@ export async function fetchNearbyPharmacies(
   }
 
   // Determine query center coordinates safely
-  const queryLat = (isValidCoordinate(userLat, userLng) ? userLat : cityGeo.lat)!;
-  const queryLng = (isValidCoordinate(userLat, userLng) ? userLng : cityGeo.lng)!;
+  const userCoordsValid = userLat !== null && userLng !== null && isValidCoordinate(userLat, userLng);
+  const cityCoordsValid = isValidCoordinate(cityGeo.lat, cityGeo.lng);
+
+  const queryLat = userCoordsValid ? userLat! : (cityCoordsValid ? cityGeo.lat : 33.589882);
+  const queryLng = userCoordsValid ? userLng! : (cityCoordsValid ? cityGeo.lng : -7.632145);
+
+  console.log('[MAP DEBUG]', {
+    rawLat: userLat,
+    rawLng: userLng,
+    parsedLat: queryLat,
+    parsedLng: queryLng,
+    source: 'pharmacyService:fetchNearbyPharmacies'
+  });
 
   try {
     const controller = new AbortController();
@@ -91,11 +102,21 @@ export async function fetchNearbyPharmacies(
     if (data && Array.isArray(data.elements) && data.elements.length > 0) {
       livePharmacies = data.elements
         .map((elem: any, idx: number) => {
-          const parsedLat = parseCoordinate(elem.lat ?? elem.center?.lat);
-          const parsedLng = parseCoordinate(elem.lon ?? elem.center?.lon);
+          const rawLat = elem.lat ?? elem.center?.lat;
+          const rawLng = elem.lon ?? elem.center?.lon;
+          const parsedLat = parseCoordinate(rawLat);
+          const parsedLng = parseCoordinate(rawLng);
 
-          const lat = (parsedLat !== null && isValidCoordinate(parsedLat, queryLng)) ? parsedLat : queryLat;
-          const lng = (parsedLng !== null && isValidCoordinate(queryLat, parsedLng)) ? parsedLng : queryLng;
+          const isParsedValid = parsedLat !== null && parsedLng !== null && isValidCoordinate(parsedLat, parsedLng);
+          const isQueryValid = isValidCoordinate(queryLat, queryLng);
+
+          if (!isParsedValid && !isQueryValid) {
+            console.log('[MAP DEBUG]', { rawLat, rawLng, parsedLat, parsedLng, source: 'pharmacyService:invalidElementSkipped' });
+            return null;
+          }
+
+          const lat = isParsedValid ? parsedLat! : queryLat!;
+          const lng = isParsedValid ? parsedLng! : queryLng!;
 
           if (!isValidCoordinate(lat, lng)) {
             return null;

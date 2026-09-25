@@ -8,6 +8,7 @@ import {
 } from '../services/locationService';
 import { calculatePharmacyStatus } from '../utils/timeUtils';
 import { geocodeLocation, PRESET_CITIES } from '../services/geocodingService';
+import { isValidCoordinate } from '../utils/coordinateUtils';
 import { parseSearchQuery } from '../services/searchParser';
 
 export interface TestOverrideOptions {
@@ -153,7 +154,7 @@ export function usePharmacies() {
     setErrorMessage(null);
 
     const geocoded = await geocodeLocation(cityName);
-    if (geocoded) {
+    if (geocoded && isValidCoordinate(geocoded.lat, geocoded.lng)) {
       setFilters(prev => ({ ...prev, selectedCity: geocoded.name }));
       setLocation({
         latitude: geocoded.lat,
@@ -170,10 +171,12 @@ export function usePharmacies() {
       });
     } else {
       const coords = getDefaultCityLocation(cityName);
+      const safeLat = isValidCoordinate(coords.lat, coords.lng) ? coords.lat : 33.589882;
+      const safeLng = isValidCoordinate(coords.lat, coords.lng) ? coords.lng : -7.632145;
       setFilters(prev => ({ ...prev, selectedCity: cityName }));
       setLocation({
-        latitude: coords.lat,
-        longitude: coords.lng,
+        latitude: safeLat,
+        longitude: safeLng,
         city: cityName,
         region: 'Morocco Region',
         country: 'Morocco',
@@ -221,8 +224,16 @@ export function usePharmacies() {
     setRawPharmacies([]); // Clear previous results while loading new city
     setErrorMessage(null);
 
-    const lat = location.latitude ?? 34.6814;
-    const lng = location.longitude ?? -1.9086;
+    const userLat = isValidCoordinate(location.latitude, location.longitude) ? location.latitude : null;
+    const userLng = isValidCoordinate(location.latitude, location.longitude) ? location.longitude : null;
+
+    console.log('[MAP DEBUG]', {
+      rawLat: location.latitude,
+      rawLng: location.longitude,
+      parsedLat: userLat,
+      parsedLng: userLng,
+      source: 'usePharmacies:loadPharmacies'
+    });
 
     if (testOverrides.forceSlowNetwork) {
       await new Promise(res => setTimeout(res, 1800));
@@ -230,8 +241,8 @@ export function usePharmacies() {
 
     try {
       const result = await fetchNearbyPharmacies(
-        lat,
-        lng,
+        userLat,
+        userLng,
         filters.maxRadiusKm * 1000,
         testOverrides.forceApiFailure,
         location.city

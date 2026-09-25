@@ -9,9 +9,10 @@ export interface Coordinates {
 }
 
 /**
- * Validates whether latitude and longitude form a valid, finite geospatial point on Earth.
+ * Centralized Coordinate Validation Function for PHARMA NOW
+ * Strictly prevents NaN, undefined, Infinity, or out-of-bounds coordinates from ever reaching Leaflet or distance engines.
  */
-export function isValidCoordinate(lat: any, lng: any): boolean {
+export function isValidCoordinate(lat: unknown, lng: unknown): boolean {
   if (lat === null || lat === undefined || lng === null || lng === undefined) {
     return false;
   }
@@ -19,22 +20,18 @@ export function isValidCoordinate(lat: any, lng: any): boolean {
     return false;
   }
 
-  const numLat = Number(lat);
-  const numLng = Number(lng);
-
-  if (!Number.isFinite(numLat) || !Number.isFinite(numLng)) {
-    return false;
-  }
-
-  if (isNaN(numLat) || isNaN(numLng)) {
-    return false;
-  }
+  const latitude = Number(lat);
+  const longitude = Number(lng);
 
   return (
-    numLat >= -90 &&
-    numLat <= 90 &&
-    numLng >= -180 &&
-    numLng <= 180
+    Number.isFinite(latitude) &&
+    Number.isFinite(longitude) &&
+    !isNaN(latitude) &&
+    !isNaN(longitude) &&
+    latitude >= -90 &&
+    latitude <= 90 &&
+    longitude >= -180 &&
+    longitude <= 180
   );
 }
 
@@ -42,7 +39,7 @@ export function isValidCoordinate(lat: any, lng: any): boolean {
  * Safely parses a coordinate to a finite number or returns null.
  * NEVER returns NaN, Infinity, or undefined.
  */
-export function parseCoordinate(val: any): number | null {
+export function parseCoordinate(val: unknown): number | null {
   if (val === null || val === undefined || val === '' || val === 'null' || val === 'undefined') {
     return null;
   }
@@ -52,3 +49,4 @@ export function parseCoordinate(val: any): number | null {
   }
   return num;
 }
+
