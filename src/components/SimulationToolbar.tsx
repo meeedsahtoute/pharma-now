@@ -35,18 +35,18 @@ export const SimulationToolbar: React.FC<SimulationToolbarProps> = ({
   };
 
   return (
-    <div className="fixed bottom-4 right-4 z-50">
+    <div className="fixed bottom-4 right-4 z-50 max-w-[calc(100vw-2rem)]">
       {!isOpen ? (
         <button
           onClick={() => setIsOpen(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-slate-900 text-white dark:bg-slate-900 border-2 border-emerald-500/80 text-emerald-400 text-xs font-bold shadow-2xl hover:scale-105 transition-all"
+          className="flex items-center gap-2 px-3.5 sm:px-4 py-2.5 rounded-full bg-slate-900 text-white dark:bg-slate-900 border-2 border-emerald-500/80 text-emerald-400 text-xs font-bold shadow-2xl hover:scale-105 transition-all max-w-full truncate"
         >
-          <TestTube className="w-4 h-4 animate-spin-slow" />
-          <span>QA Test Suite (20/20 Edge Cases)</span>
-          <ChevronUp className="w-4 h-4" />
+          <TestTube className="w-4 h-4 shrink-0 animate-spin-slow" />
+          <span className="truncate">QA Test Suite</span>
+          <ChevronUp className="w-4 h-4 shrink-0" />
         </button>
       ) : (
-        <div className="w-80 sm:w-96 bg-white/95 dark:bg-slate-900/95 border border-slate-200 dark:border-slate-700 rounded-3xl p-5 shadow-2xl backdrop-blur-xl max-h-[80vh] overflow-y-auto text-slate-900 dark:text-slate-100">
+        <div className="w-80 sm:w-96 max-w-[calc(100vw-2rem)] bg-white/95 dark:bg-slate-900/95 border border-slate-200 dark:border-slate-700 rounded-3xl p-4 sm:p-5 shadow-2xl backdrop-blur-xl max-h-[80vh] overflow-y-auto text-slate-900 dark:text-slate-100">
           
           <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
             <div className="flex items-center gap-2 text-slate-900 dark:text-slate-100 font-bold text-sm">

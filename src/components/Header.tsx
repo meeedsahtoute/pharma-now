@@ -9,8 +9,7 @@ import {
   Sparkles, 
   Menu, 
   X, 
-  Building2, 
-  HelpCircle 
+  Building2
 } from 'lucide-react';
 import { useTranslation } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
@@ -82,27 +81,27 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="sticky top-0 z-40 bg-white/90 dark:bg-slate-950/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800/80 text-slate-900 dark:text-slate-100 transition-colors duration-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 gap-3 sm:gap-6">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 gap-2 sm:gap-6">
           
           {/* Brand Logo & Title */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <button
               onClick={() => {
                 onTabChange('find');
                 setIsMobileMenuOpen(false);
               }}
-              className="flex items-center gap-2.5 group text-left transition"
+              className="flex items-center gap-2 group text-left transition"
             >
-              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-600 text-white font-bold text-xl shadow-md shadow-emerald-600/20 group-hover:scale-105 transition-transform">
+              <div className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-600 text-white font-bold text-lg sm:text-xl shadow-md shadow-emerald-600/20 group-hover:scale-105 transition-transform">
                 ✚
               </div>
               <div className="flex flex-col">
-                <span className="font-extrabold text-lg tracking-tight text-slate-900 dark:text-white leading-none font-sans flex items-center gap-1">
+                <span className="font-extrabold text-base sm:text-lg tracking-tight text-slate-900 dark:text-white leading-none font-sans flex items-center gap-1">
                   PHARMA<span className="text-emerald-600 dark:text-emerald-400">NOW</span>
                   <span className="text-xs">🇲🇦</span>
                 </span>
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium tracking-wide">
+                <span className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 font-medium tracking-wide">
                   Morocco Health & Duty Rota
                 </span>
               </div>
@@ -186,23 +185,23 @@ export const Header: React.FC<HeaderProps> = ({
           </nav>
 
           {/* Right Controls: Location Badge, i18n Selector, Theme Toggle & Mobile Hamburger */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             
             {/* City Location Button */}
             <button
               onClick={onCityClick}
-              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 text-xs font-bold transition"
+              className="flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 text-xs font-bold transition"
               title={t.cityModalTitle}
             >
               <MapPin className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-              <span className="truncate max-w-[80px] sm:max-w-[120px]">{currentCity}</span>
+              <span className="truncate max-w-[55px] xs:max-w-[75px] sm:max-w-[120px]">{currentCity}</span>
             </button>
 
             {/* i18n Language Selector */}
             <div className="relative" ref={langMenuRef}>
               <button
                 onClick={() => setShowLangMenu(!showLangMenu)}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold transition"
+                className="flex items-center gap-1 px-2 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold transition"
                 title="Select language"
               >
                 <Globe className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
@@ -235,7 +234,7 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Dark/Light Mode Toggle Button */}
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 transition active:scale-95"
+              className="p-1.5 sm:p-2 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 transition active:scale-95"
               title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
             >
               {isDarkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-emerald-600" />}
@@ -244,7 +243,7 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Mobile Hamburger Navigation Button */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden p-2 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 transition active:scale-95 flex items-center justify-center"
+              className="lg:hidden p-1.5 sm:p-2 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 transition active:scale-95 flex items-center justify-center"
               aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={isMobileMenuOpen}
             >
@@ -259,147 +258,169 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Mobile Navigation Drawer / Backdrop Overlay */}
       {isMobileMenuOpen && (
         <div 
-          className="lg:hidden fixed inset-0 top-16 bg-slate-950/70 backdrop-blur-md z-50 flex flex-col justify-start animate-fade-in"
+          className="lg:hidden fixed inset-0 top-16 bg-slate-950/80 backdrop-blur-xl z-50 flex flex-col justify-start animate-fade-in"
           onClick={() => setIsMobileMenuOpen(false)}
         >
           <div
-            className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 p-4 shadow-2xl rounded-b-3xl flex flex-col gap-2 max-h-[85vh] overflow-y-auto"
+            className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border-b border-slate-200 dark:border-slate-800/90 p-4 sm:p-5 shadow-2xl rounded-b-3xl flex flex-col gap-2.5 max-h-[calc(100dvh-4rem)] overflow-y-auto w-full max-w-lg mx-auto"
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-label="Mobile Navigation"
           >
-            <div className="flex items-center justify-between pb-2 mb-1 border-b border-slate-100 dark:border-slate-800 text-xs font-bold text-slate-400 uppercase tracking-wider">
-              <span>Navigation Menu</span>
+            {/* Drawer Header */}
+            <div className="flex items-center justify-between pb-3 mb-1 border-b border-slate-200/80 dark:border-slate-800/80">
+              <div className="flex items-center gap-2.5">
+                <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-emerald-600 text-white font-extrabold text-base shadow-sm">
+                  ✚
+                </div>
+                <span className="font-extrabold text-sm tracking-tight text-slate-900 dark:text-white">
+                  PHARMA<span className="text-emerald-600 dark:text-emerald-400">NOW</span> Navigation
+                </span>
+              </div>
               <button 
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white"
+                className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-white transition"
+                aria-label="Close menu"
               >
-                <X className="w-4 h-4" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* 1. Trouver une pharmacie */}
-            <button
-              onClick={() => {
-                onTabChange('find');
-                setIsMobileMenuOpen(false);
-              }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition ${
-                activeTab === 'find'
-                  ? 'bg-emerald-600 text-white shadow-md'
-                  : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
-              }`}
-            >
-              <MapPin className="w-4.5 h-4.5 text-emerald-500" />
-              <span>{t.navFindPharmacy}</span>
-            </button>
+            {/* Menu Items Grid/List (ALL 6 RELEVANT OPTIONS VISIBLE AT ONCE) */}
+            <div className="flex flex-col gap-2">
+              
+              {/* 1. Trouver une pharmacie */}
+              <button
+                onClick={() => {
+                  onTabChange('find');
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`w-full flex items-center justify-between p-3.5 rounded-2xl text-xs font-extrabold transition-all border ${
+                  activeTab === 'find'
+                    ? 'bg-emerald-600 text-white border-emerald-500 shadow-md shadow-emerald-600/30'
+                    : 'bg-slate-50 dark:bg-slate-800/60 text-slate-800 dark:text-slate-100 border-slate-200/80 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-xl ${activeTab === 'find' ? 'bg-white/20 text-white' : 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 border border-slate-200 dark:border-slate-800'}`}>
+                    <MapPin className="w-4 h-4" />
+                  </div>
+                  <span className="text-sm font-bold">{t.navFindPharmacy}</span>
+                </div>
+                <span className="text-xs opacity-60">➔</span>
+              </button>
 
-            {/* 2. Pharmacies de garde */}
-            <button
-              onClick={() => {
-                onTabChange('duty');
-                setIsMobileMenuOpen(false);
-              }}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold transition ${
-                activeTab === 'duty'
-                  ? 'bg-emerald-600 text-white shadow-md'
-                  : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <Sparkles className="w-4.5 h-4.5 text-emerald-500" />
-                <span>{t.navOnDuty}</span>
-              </div>
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-              </span>
-            </button>
+              {/* 2. Pharmacies de garde */}
+              <button
+                onClick={() => {
+                  onTabChange('duty');
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`w-full flex items-center justify-between p-3.5 rounded-2xl text-xs font-extrabold transition-all border ${
+                  activeTab === 'duty'
+                    ? 'bg-emerald-600 text-white border-emerald-500 shadow-md shadow-emerald-600/30'
+                    : 'bg-slate-50 dark:bg-slate-800/60 text-slate-800 dark:text-slate-100 border-slate-200/80 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-xl ${activeTab === 'duty' ? 'bg-white/20 text-white' : 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 border border-slate-200 dark:border-slate-800'}`}>
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <span className="text-sm font-bold">{t.navOnDuty}</span>
+                </div>
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                </span>
+              </button>
 
-            {/* 3. PHARMA AI */}
-            <button
-              onClick={() => {
-                onTabChange('ai');
-                setIsMobileMenuOpen(false);
-              }}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold transition ${
-                activeTab === 'ai'
-                  ? 'bg-emerald-600 text-white shadow-md'
-                  : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <Sparkles className="w-4.5 h-4.5 text-amber-400 animate-pulse" />
-                <span>PHARMA AI Assistant</span>
-              </div>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-400/20 text-amber-600 dark:text-amber-400">
-                AI
-              </span>
-            </button>
+              {/* 3. PHARMA AI */}
+              <button
+                onClick={() => {
+                  onTabChange('ai');
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`w-full flex items-center justify-between p-3.5 rounded-2xl text-xs font-extrabold transition-all border ${
+                  activeTab === 'ai'
+                    ? 'bg-emerald-600 text-white border-emerald-500 shadow-md shadow-emerald-600/30'
+                    : 'bg-emerald-500/10 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-xl ${activeTab === 'ai' ? 'bg-white/20 text-white' : 'bg-white dark:bg-slate-900 text-amber-400 border border-emerald-500/30'}`}>
+                    <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
+                  </div>
+                  <span className="text-sm font-bold">PHARMA AI Assistant</span>
+                </div>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-400/20 text-amber-600 dark:text-amber-400 border border-amber-400/30">
+                  AI
+                </span>
+              </button>
 
-            {/* 4. Villes */}
-            <button
-              onClick={() => {
-                onTabChange('cities');
-                setIsMobileMenuOpen(false);
-              }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition ${
-                activeTab === 'cities'
-                  ? 'bg-emerald-600 text-white shadow-md'
-                  : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
-              }`}
-            >
-              <Building2 className="w-4.5 h-4.5 text-emerald-500" />
-              <span>{t.navCities}</span>
-            </button>
+              {/* 4. Villes */}
+              <button
+                onClick={() => {
+                  onTabChange('cities');
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`w-full flex items-center justify-between p-3.5 rounded-2xl text-xs font-extrabold transition-all border ${
+                  activeTab === 'cities'
+                    ? 'bg-emerald-600 text-white border-emerald-500 shadow-md shadow-emerald-600/30'
+                    : 'bg-slate-50 dark:bg-slate-800/60 text-slate-800 dark:text-slate-100 border-slate-200/80 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-xl ${activeTab === 'cities' ? 'bg-white/20 text-white' : 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 border border-slate-200 dark:border-slate-800'}`}>
+                    <Building2 className="w-4 h-4" />
+                  </div>
+                  <span className="text-sm font-bold">{t.navCities}</span>
+                </div>
+                <span className="text-xs opacity-60">➔</span>
+              </button>
 
-            {/* 5. Health Guide */}
-            <button
-              onClick={() => {
-                onTabChange('health');
-                setIsMobileMenuOpen(false);
-              }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition ${
-                activeTab === 'health'
-                  ? 'bg-emerald-600 text-white shadow-md'
-                  : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
-              }`}
-            >
-              <BookOpen className="w-4.5 h-4.5 text-emerald-500" />
-              <span>Health Guide</span>
-            </button>
+              {/* 5. Health Guide */}
+              <button
+                onClick={() => {
+                  onTabChange('health');
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`w-full flex items-center justify-between p-3.5 rounded-2xl text-xs font-extrabold transition-all border ${
+                  activeTab === 'health'
+                    ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
+                    : 'bg-slate-50 dark:bg-slate-800/60 text-slate-800 dark:text-slate-100 border-slate-200/80 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-xl ${activeTab === 'health' ? 'bg-white/20 text-white' : 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 border border-slate-200 dark:border-slate-800'}`}>
+                    <BookOpen className="w-4 h-4" />
+                  </div>
+                  <span className="text-sm font-bold">Health Guide</span>
+                </div>
+                <span className="text-xs opacity-60">➔</span>
+              </button>
 
-            {/* 6. Médications */}
-            <button
-              onClick={() => {
-                onTabChange('medications');
-                setIsMobileMenuOpen(false);
-              }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition ${
-                activeTab === 'medications'
-                  ? 'bg-emerald-600 text-white shadow-md'
-                  : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
-              }`}
-            >
-              <Pill className="w-4.5 h-4.5 text-emerald-500" />
-              <span>Medications</span>
-            </button>
+              {/* 6. Médications */}
+              <button
+                onClick={() => {
+                  onTabChange('medications');
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`w-full flex items-center justify-between p-3.5 rounded-2xl text-xs font-extrabold transition-all border ${
+                  activeTab === 'medications'
+                    ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
+                    : 'bg-slate-50 dark:bg-slate-800/60 text-slate-800 dark:text-slate-100 border-slate-200/80 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-xl ${activeTab === 'medications' ? 'bg-white/20 text-white' : 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 border border-slate-200 dark:border-slate-800'}`}>
+                    <Pill className="w-4 h-4" />
+                  </div>
+                  <span className="text-sm font-bold">Medications</span>
+                </div>
+                <span className="text-xs opacity-60">➔</span>
+              </button>
 
-            {/* 7. Comment ça marche / How it works */}
-            <button
-              onClick={() => {
-                onTabChange('how');
-                setIsMobileMenuOpen(false);
-              }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition ${
-                activeTab === 'how'
-                  ? 'bg-emerald-600 text-white shadow-md'
-                  : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
-              }`}
-            >
-              <HelpCircle className="w-4.5 h-4.5 text-emerald-500" />
-              <span>{t.navHowItWorks}</span>
-            </button>
+            </div>
 
           </div>
         </div>
