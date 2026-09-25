@@ -1,5 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MapPin, Globe, Moon, Sun, BookOpen, Pill, Sparkles } from 'lucide-react';
+import { 
+  MapPin, 
+  Globe, 
+  Moon, 
+  Sun, 
+  BookOpen, 
+  Pill, 
+  Sparkles, 
+  Menu, 
+  X, 
+  Building2, 
+  HelpCircle 
+} from 'lucide-react';
 import { useTranslation } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import type { Language } from '../i18n/translations';
@@ -21,7 +33,10 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const { t, language, setLanguage, isRTL } = useTranslation();
   const { isDarkMode, toggleTheme } = useTheme();
+  
   const [showLangMenu, setShowLangMenu] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
   const langMenuRef = useRef<HTMLDivElement>(null);
 
   const languages: { code: Language; name: string; native: string }[] = [
@@ -30,6 +45,7 @@ export const Header: React.FC<HeaderProps> = ({
     { code: 'EN', name: 'English', native: 'English' }
   ];
 
+  // Close menus on outside click
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (langMenuRef.current && !langMenuRef.current.contains(event.target as Node)) {
@@ -40,6 +56,30 @@ export const Header: React.FC<HeaderProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Keyboard Escape listener
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsMobileMenuOpen(false);
+        setShowLangMenu(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Body Scroll Lock when Mobile Menu is Open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMobileMenuOpen]);
+
   return (
     <header className="sticky top-0 z-40 bg-white/90 dark:bg-slate-950/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800/80 text-slate-900 dark:text-slate-100 transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -48,7 +88,10 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Brand Logo & Title */}
           <div className="flex items-center gap-3">
             <button
-              onClick={() => onTabChange('find')}
+              onClick={() => {
+                onTabChange('find');
+                setIsMobileMenuOpen(false);
+              }}
               className="flex items-center gap-2.5 group text-left transition"
             >
               <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-600 text-white font-bold text-xl shadow-md shadow-emerald-600/20 group-hover:scale-105 transition-transform">
@@ -142,17 +185,17 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           </nav>
 
-          {/* Right Controls: Location Badge, i18n Selector, Theme Toggle */}
+          {/* Right Controls: Location Badge, i18n Selector, Theme Toggle & Mobile Hamburger */}
           <div className="flex items-center gap-2">
             
             {/* City Location Button */}
             <button
               onClick={onCityClick}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 text-xs font-bold transition"
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 text-xs font-bold transition"
               title={t.cityModalTitle}
             >
               <MapPin className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-              <span className="truncate max-w-[100px] sm:max-w-[120px]">{currentCity}</span>
+              <span className="truncate max-w-[80px] sm:max-w-[120px]">{currentCity}</span>
             </button>
 
             {/* i18n Language Selector */}
@@ -198,10 +241,170 @@ export const Header: React.FC<HeaderProps> = ({
               {isDarkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-emerald-600" />}
             </button>
 
+            {/* Mobile Hamburger Navigation Button */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="lg:hidden p-2 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 transition active:scale-95 flex items-center justify-center"
+              aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={isMobileMenuOpen}
+            >
+              {isMobileMenuOpen ? <X className="w-5 h-5 text-emerald-600 dark:text-emerald-400" /> : <Menu className="w-5 h-5" />}
+            </button>
+
           </div>
 
         </div>
       </div>
+
+      {/* Mobile Navigation Drawer / Backdrop Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="lg:hidden fixed inset-0 top-16 bg-slate-950/70 backdrop-blur-md z-50 flex flex-col justify-start animate-fade-in"
+          onClick={() => setIsMobileMenuOpen(false)}
+        >
+          <div
+            className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 p-4 shadow-2xl rounded-b-3xl flex flex-col gap-2 max-h-[85vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-label="Mobile Navigation"
+          >
+            <div className="flex items-center justify-between pb-2 mb-1 border-b border-slate-100 dark:border-slate-800 text-xs font-bold text-slate-400 uppercase tracking-wider">
+              <span>Navigation Menu</span>
+              <button 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* 1. Trouver une pharmacie */}
+            <button
+              onClick={() => {
+                onTabChange('find');
+                setIsMobileMenuOpen(false);
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition ${
+                activeTab === 'find'
+                  ? 'bg-emerald-600 text-white shadow-md'
+                  : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+              }`}
+            >
+              <MapPin className="w-4.5 h-4.5 text-emerald-500" />
+              <span>{t.navFindPharmacy}</span>
+            </button>
+
+            {/* 2. Pharmacies de garde */}
+            <button
+              onClick={() => {
+                onTabChange('duty');
+                setIsMobileMenuOpen(false);
+              }}
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold transition ${
+                activeTab === 'duty'
+                  ? 'bg-emerald-600 text-white shadow-md'
+                  : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <Sparkles className="w-4.5 h-4.5 text-emerald-500" />
+                <span>{t.navOnDuty}</span>
+              </div>
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+              </span>
+            </button>
+
+            {/* 3. PHARMA AI */}
+            <button
+              onClick={() => {
+                onTabChange('ai');
+                setIsMobileMenuOpen(false);
+              }}
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold transition ${
+                activeTab === 'ai'
+                  ? 'bg-emerald-600 text-white shadow-md'
+                  : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <Sparkles className="w-4.5 h-4.5 text-amber-400 animate-pulse" />
+                <span>PHARMA AI Assistant</span>
+              </div>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-400/20 text-amber-600 dark:text-amber-400">
+                AI
+              </span>
+            </button>
+
+            {/* 4. Villes */}
+            <button
+              onClick={() => {
+                onTabChange('cities');
+                setIsMobileMenuOpen(false);
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition ${
+                activeTab === 'cities'
+                  ? 'bg-emerald-600 text-white shadow-md'
+                  : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+              }`}
+            >
+              <Building2 className="w-4.5 h-4.5 text-emerald-500" />
+              <span>{t.navCities}</span>
+            </button>
+
+            {/* 5. Health Guide */}
+            <button
+              onClick={() => {
+                onTabChange('health');
+                setIsMobileMenuOpen(false);
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition ${
+                activeTab === 'health'
+                  ? 'bg-emerald-600 text-white shadow-md'
+                  : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+              }`}
+            >
+              <BookOpen className="w-4.5 h-4.5 text-emerald-500" />
+              <span>Health Guide</span>
+            </button>
+
+            {/* 6. Médications */}
+            <button
+              onClick={() => {
+                onTabChange('medications');
+                setIsMobileMenuOpen(false);
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition ${
+                activeTab === 'medications'
+                  ? 'bg-emerald-600 text-white shadow-md'
+                  : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+              }`}
+            >
+              <Pill className="w-4.5 h-4.5 text-emerald-500" />
+              <span>Medications</span>
+            </button>
+
+            {/* 7. Comment ça marche / How it works */}
+            <button
+              onClick={() => {
+                onTabChange('how');
+                setIsMobileMenuOpen(false);
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition ${
+                activeTab === 'how'
+                  ? 'bg-emerald-600 text-white shadow-md'
+                  : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+              }`}
+            >
+              <HelpCircle className="w-4.5 h-4.5 text-emerald-500" />
+              <span>{t.navHowItWorks}</span>
+            </button>
+
+          </div>
+        </div>
+      )}
+
     </header>
   );
 };
