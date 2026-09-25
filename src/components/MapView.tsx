@@ -3,7 +3,6 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { Pharmacy, LocationState } from '../types/pharmacy';
 import { AlertTriangle, MapPin } from 'lucide-react';
-import { isValidCoordinate } from '../utils/coordinateUtils';
 
 interface MapViewProps {
   pharmacies: Pharmacy[];
@@ -11,6 +10,40 @@ interface MapViewProps {
   selectedPharmacy?: Pharmacy | null;
   onSelectPharmacy: (p: Pharmacy) => void;
   isMapErrorSimulated?: boolean;
+}
+
+/**
+ * Hard Invariant Validator for Leaflet Input Coordinates.
+ * Strictly checks for finite, non-NaN numbers within Earth's latitude/longitude boundaries.
+ */
+function validateLeafletCoords(rawLat: unknown, rawLng: unknown, source: string): { lat: number; lng: number } | null {
+  if (rawLat === null || rawLat === undefined || rawLng === null || rawLng === undefined) {
+    return null;
+  }
+  const lat = Number(rawLat);
+  const lng = Number(rawLng);
+
+  if (
+    !Number.isFinite(lat) ||
+    !Number.isFinite(lng) ||
+    isNaN(lat) ||
+    isNaN(lng) ||
+    lat < -90 ||
+    lat > 90 ||
+    lng < -180 ||
+    lng > 180
+  ) {
+    console.error('[PHARMA FATAL MAP INPUT]', {
+      rawLat,
+      rawLng,
+      lat,
+      lng,
+      source
+    });
+    return null;
+  }
+
+  return { lat, lng };
 }
 
 export const MapView: React.FC<MapViewProps> = ({
@@ -25,33 +58,38 @@ export const MapView: React.FC<MapViewProps> = ({
   const markersRef = useRef<{ [key: string]: L.Marker }>({});
 
   // 1. Determine Map Center safely (NO fallback to hardcoded 0,0 or hardcoded cities if invalid)
+  const userCoords = validateLeafletCoords(location.lat, location.lng, 'MapView:centerCalculation:user');
   let centerLat: number | null = null;
   let centerLng: number | null = null;
 
-  if (isValidCoordinate(location.lat, location.lng)) {
-    centerLat = Number(location.lat);
-    centerLng = Number(location.lng);
+  if (userCoords) {
+    centerLat = userCoords.lat;
+    centerLng = userCoords.lng;
   } else {
     // Attempt to center on first pharmacy with valid coordinates
-    const validPharm = pharmacies.find(p => isValidCoordinate(p.lat, p.lng));
+    const validPharm = pharmacies.find(p => validateLeafletCoords(p.lat, p.lng, 'MapView:centerCalculation:pharmacySearch') !== null);
     if (validPharm) {
-      centerLat = Number(validPharm.lat);
-      centerLng = Number(validPharm.lng);
+      const pCoords = validateLeafletCoords(validPharm.lat, validPharm.lng, 'MapView:centerCalculation:pharmacyFound');
+      if (pCoords) {
+        centerLat = pCoords.lat;
+        centerLng = pCoords.lng;
+      }
     }
   }
 
-  const isLocationAvailable = centerLat !== null && centerLng !== null && isValidCoordinate(centerLat, centerLng);
+  const isLocationAvailable = centerLat !== null && centerLng !== null;
 
-  console.log('[MAP DEBUG]', {
+  console.error('[PHARMA DEBUG] MAP COORDINATES', {
     rawLat: location.lat,
     rawLng: location.lng,
     parsedLat: centerLat,
     parsedLng: centerLng,
     isLocationAvailable,
-    source: 'MapView:centerCalculation'
+    source: 'MapView:centerCalculation',
+    component: 'MapView'
   });
 
-  // 2. Initialize Leaflet Map safely when valid coordinates exist
+  // 2. Initialize Leaflet Map safely when valid coordinates AND container dimensions exist
   useEffect(() => {
     if (isMapErrorSimulated || !isLocationAvailable || centerLat === null || centerLng === null) {
       if (mapInstanceRef.current) {
@@ -64,13 +102,32 @@ export const MapView: React.FC<MapViewProps> = ({
     if (!mapContainerRef.current) return;
     if (mapInstanceRef.current) return;
 
-    if (!isValidCoordinate(centerLat, centerLng)) {
-      console.warn('[MAP DEBUG] Refusing to initialize Leaflet with invalid center:', { centerLat, centerLng });
+    // Check container dimensions to prevent 0x0 Leaflet fitBounds/zoom crash on mobile
+    const clientWidth = mapContainerRef.current.clientWidth;
+    const clientHeight = mapContainerRef.current.clientHeight;
+
+    if (clientWidth === 0 || clientHeight === 0) {
+      console.warn('[PHARMA DEBUG] Map container has 0 dimensions (hidden tab/mobile). Delaying map init.', { clientWidth, clientHeight });
       return;
     }
 
+    const verifiedCenter = validateLeafletCoords(centerLat, centerLng, 'MapView:initLeafletCenter');
+    if (!verifiedCenter) {
+      console.error('[PHARMA FATAL MAP INPUT] Refusing to initialize Leaflet with invalid center:', { centerLat, centerLng });
+      return;
+    }
+
+    console.error('[PHARMA DEBUG] MAP COORDINATES', {
+      rawLat: centerLat,
+      rawLng: centerLng,
+      parsedLat: verifiedCenter.lat,
+      parsedLng: verifiedCenter.lng,
+      source: 'MapView:L.map:initialization',
+      component: 'MapView'
+    });
+
     const map = L.map(mapContainerRef.current, {
-      center: [centerLat, centerLng],
+      center: [verifiedCenter.lat, verifiedCenter.lng],
       zoom: 13,
       zoomControl: false
     });
@@ -106,10 +163,20 @@ export const MapView: React.FC<MapViewProps> = ({
     const map = mapInstanceRef.current;
     if (!map || isMapErrorSimulated) return;
 
-    if (isValidCoordinate(location.lat, location.lng)) {
-      const lat = Number(location.lat);
-      const lng = Number(location.lng);
-      map.flyTo([lat, lng], 13, { duration: 1.0 });
+    const size = map.getSize();
+    if (size.x === 0 || size.y === 0) return;
+
+    const validUser = validateLeafletCoords(location.lat, location.lng, 'MapView:flyToUser');
+    if (validUser) {
+      console.error('[PHARMA DEBUG] MAP COORDINATES', {
+        rawLat: location.lat,
+        rawLng: location.lng,
+        parsedLat: validUser.lat,
+        parsedLng: validUser.lng,
+        source: 'MapView:flyToUser',
+        component: 'MapView'
+      });
+      map.flyTo([validUser.lat, validUser.lng], 13, { duration: 1.0 });
     }
   }, [location.lat, location.lng, isMapErrorSimulated]);
 
@@ -118,14 +185,24 @@ export const MapView: React.FC<MapViewProps> = ({
     const map = mapInstanceRef.current;
     if (!map || isMapErrorSimulated) return;
 
+    const size = map.getSize();
+    if (size.x === 0 || size.y === 0) return;
+
     // Clear existing markers
     Object.values(markersRef.current).forEach((m) => m.remove());
     markersRef.current = {};
 
     // User Position Marker
-    if (isValidCoordinate(location.lat, location.lng)) {
-      const userLat = Number(location.lat);
-      const userLng = Number(location.lng);
+    const validUser = validateLeafletCoords(location.lat, location.lng, 'MapView:userMarker');
+    if (validUser) {
+      console.error('[PHARMA DEBUG] MAP COORDINATES', {
+        rawLat: location.lat,
+        rawLng: location.lng,
+        parsedLat: validUser.lat,
+        parsedLng: validUser.lng,
+        source: 'MapView:userMarkerCreation',
+        component: 'MapView'
+      });
 
       const userIcon = L.divIcon({
         className: 'user-pin-icon',
@@ -139,7 +216,7 @@ export const MapView: React.FC<MapViewProps> = ({
         iconAnchor: [16, 16]
       });
 
-      const userMarker = L.marker([userLat, userLng], { icon: userIcon })
+      const userMarker = L.marker([validUser.lat, validUser.lng], { icon: userIcon })
         .addTo(map)
         .bindPopup('<div class="text-xs font-bold text-slate-900 p-1">📍 Live Location</div>');
       
@@ -148,18 +225,20 @@ export const MapView: React.FC<MapViewProps> = ({
 
     // Pharmacy Markers
     pharmacies.forEach((pharmacy) => {
-      if (!isValidCoordinate(pharmacy.lat, pharmacy.lng)) {
-        console.warn('[MAP DEBUG] Rejecting invalid pharmacy marker coordinate:', {
-          name: pharmacy.name,
-          lat: pharmacy.lat,
-          lng: pharmacy.lng,
-          source: 'MapView:markerCreation'
-        });
+      const pCoords = validateLeafletCoords(pharmacy.lat, pharmacy.lng, `MapView:pharmacyMarker:${pharmacy.name}`);
+      if (!pCoords) {
         return;
       }
 
-      const pLat = Number(pharmacy.lat);
-      const pLng = Number(pharmacy.lng);
+      console.error('[PHARMA DEBUG] MAP COORDINATES', {
+        rawLat: pharmacy.lat,
+        rawLng: pharmacy.lng,
+        parsedLat: pCoords.lat,
+        parsedLng: pCoords.lng,
+        source: `MapView:pharmacyMarker:${pharmacy.id}`,
+        component: 'MapView'
+      });
+
       const status = pharmacy.calculatedStatus?.status;
       
       let colorBg = 'bg-slate-700 text-white border-slate-500';
@@ -191,7 +270,7 @@ export const MapView: React.FC<MapViewProps> = ({
         iconAnchor: [16, 16]
       });
 
-      const marker = L.marker([pLat, pLng], { icon: customIcon }).addTo(map);
+      const marker = L.marker([pCoords.lat, pCoords.lng], { icon: customIcon }).addTo(map);
 
       const popupHtml = `
         <div style="font-family: sans-serif; padding: 4px; min-width: 180px;">
@@ -200,7 +279,7 @@ export const MapView: React.FC<MapViewProps> = ({
           <div style="font-size: 11px; font-weight: 700; color: ${status === 'on_duty' ? '#059669' : status === 'open' ? '#10b981' : '#64748b'}; margin-bottom: 8px;">
             ${pharmacy.calculatedStatus?.statusLabel || ''}
           </div>
-          <a href="https://www.google.com/maps/dir/?api=1&destination=${pLat},${pLng}" target="_blank" style="display: block; background: #059669; color: white; text-align: center; font-size: 11px; font-weight: 700; padding: 6px 8px; border-radius: 8px; text-decoration: none;">
+          <a href="https://www.google.com/maps/dir/?api=1&destination=${pCoords.lat},${pCoords.lng}" target="_blank" style="display: block; background: #059669; color: white; text-align: center; font-size: 11px; font-weight: 700; padding: 6px 8px; border-radius: 8px; text-decoration: none;">
             Directions ➔
           </a>
         </div>
@@ -215,35 +294,69 @@ export const MapView: React.FC<MapViewProps> = ({
       markersRef.current[pharmacy.id] = marker;
     });
 
+    // 5. Safe fitBounds Execution (Requires Non-Zero Container Dimensions & >= 2 Valid Markers)
     if (pharmacies.length > 0 && !selectedPharmacy) {
       try {
         const markerList = Object.values(markersRef.current);
-        if (markerList.length > 0) {
+        if (markerList.length >= 2) {
           const group = L.featureGroup(markerList);
           const bounds = group.getBounds();
           if (bounds && bounds.isValid()) {
             const sw = bounds.getSouthWest();
             const ne = bounds.getNorthEast();
-            if (isValidCoordinate(sw?.lat, sw?.lng) && isValidCoordinate(ne?.lat, ne?.lng)) {
-              map.fitBounds(bounds.pad(0.15));
+            const validSW = validateLeafletCoords(sw?.lat, sw?.lng, 'MapView:fitBoundsSW');
+            const validNE = validateLeafletCoords(ne?.lat, ne?.lng, 'MapView:fitBoundsNE');
+
+            if (validSW && validNE) {
+              const boundsCenter = bounds.getCenter();
+              const validCenter = validateLeafletCoords(boundsCenter?.lat, boundsCenter?.lng, 'MapView:fitBoundsCenter');
+              if (validCenter) {
+                console.error('[PHARMA DEBUG] MAP COORDINATES', {
+                  rawLat: boundsCenter.lat,
+                  rawLng: boundsCenter.lng,
+                  parsedLat: validCenter.lat,
+                  parsedLng: validCenter.lng,
+                  source: 'MapView:fitBounds',
+                  component: 'MapView'
+                });
+                map.fitBounds(bounds.pad(0.15));
+              }
             }
+          }
+        } else if (markerList.length === 1) {
+          const singleMarker = markerList[0];
+          const pos = singleMarker.getLatLng();
+          const validPos = validateLeafletCoords(pos?.lat, pos?.lng, 'MapView:singleMarkerPos');
+          if (validPos) {
+            map.setView([validPos.lat, validPos.lng], 13);
           }
         }
       } catch (e) {
-        console.warn('[MAP DEBUG] Exception during fitBounds:', e);
+        console.error('[PHARMA DEBUG] fitBounds safely caught error:', e);
       }
     }
   }, [pharmacies, location.lat, location.lng, isMapErrorSimulated]);
 
-  // 5. Pan to Selected Pharmacy (Strict Validation)
+  // 6. Pan to Selected Pharmacy (Strict Validation)
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map || !selectedPharmacy || isMapErrorSimulated) return;
 
-    if (isValidCoordinate(selectedPharmacy.lat, selectedPharmacy.lng)) {
-      const pLat = Number(selectedPharmacy.lat);
-      const pLng = Number(selectedPharmacy.lng);
-      map.flyTo([pLat, pLng], 16, {
+    const size = map.getSize();
+    if (size.x === 0 || size.y === 0) return;
+
+    const validSelected = validateLeafletCoords(selectedPharmacy.lat, selectedPharmacy.lng, 'MapView:flyToSelected');
+    if (validSelected) {
+      console.error('[PHARMA DEBUG] MAP COORDINATES', {
+        rawLat: selectedPharmacy.lat,
+        rawLng: selectedPharmacy.lng,
+        parsedLat: validSelected.lat,
+        parsedLng: validSelected.lng,
+        source: 'MapView:flyToSelected',
+        component: 'MapView'
+      });
+
+      map.flyTo([validSelected.lat, validSelected.lng], 16, {
         duration: 1.2
       });
 
