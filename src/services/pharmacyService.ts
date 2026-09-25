@@ -2,6 +2,7 @@ import type { Pharmacy, ServiceType } from '../types/pharmacy';
 import { VERIFIED_MOROCCAN_PHARMACIES, MOROCCAN_CITIES_COORDINATES } from '../data/moroccanPharmaciesDatabase.ts';
 import { OFFICIAL_DUTY_ROSTERS } from '../data/dutyRostersDatabase.ts';
 import { calculateDistance } from './locationService.ts';
+import { isValidCoordinate, parseCoordinate } from '../utils/coordinateUtils';
 
 export interface FetchPharmaciesResult {
   pharmacies: Pharmacy[];
@@ -41,19 +42,23 @@ export function normalizeCityName(cityName: string): string {
  * Strictly enforces that EVERY result returned belongs ONLY to the selected city.
  */
 export async function fetchNearbyPharmacies(
-  userLat: number,
-  userLng: number,
+  userLat: number | null,
+  userLng: number | null,
   radiusMeters: number = 25000,
   forceApiFailure: boolean = false,
-  cityName: string = 'Oujda'
+  cityName: string = 'Casablanca'
 ): Promise<FetchPharmaciesResult> {
   const targetCity = normalizeCityName(cityName);
-  const cityGeo = MOROCCAN_CITIES_COORDINATES[targetCity] || MOROCCAN_CITIES_COORDINATES['Oujda'];
+  const cityGeo = MOROCCAN_CITIES_COORDINATES[targetCity] || MOROCCAN_CITIES_COORDINATES['Casablanca'];
 
   if (forceApiFailure) {
     console.warn('[PHARMA NOW] Simulated API Failure active. Using local verified directory.');
     return getVerifiedCityPharmacies(userLat, userLng, targetCity, cityGeo.lat, cityGeo.lng);
   }
+
+  // Determine query center coordinates safely
+  const queryLat = (isValidCoordinate(userLat, userLng) ? userLat : cityGeo.lat)!;
+  const queryLng = (isValidCoordinate(userLat, userLng) ? userLng : cityGeo.lng)!;
 
   try {
     const controller = new AbortController();
@@ -62,8 +67,8 @@ export async function fetchNearbyPharmacies(
     const query = `
       [out:json][timeout:5];
       (
-        node["amenity"="pharmacy"](around:${radiusMeters},${userLat},${userLng});
-        way["amenity"="pharmacy"](around:${radiusMeters},${userLat},${userLng});
+        node["amenity"="pharmacy"](around:${radiusMeters},${queryLat},${queryLng});
+        way["amenity"="pharmacy"](around:${radiusMeters},${queryLat},${queryLng});
       );
       out center 50;
     `;
@@ -86,14 +91,21 @@ export async function fetchNearbyPharmacies(
     if (data && Array.isArray(data.elements) && data.elements.length > 0) {
       livePharmacies = data.elements
         .map((elem: any, idx: number) => {
-          const lat = elem.lat || elem.center?.lat || userLat;
-          const lng = elem.lon || elem.center?.lon || userLng;
+          const parsedLat = parseCoordinate(elem.lat ?? elem.center?.lat);
+          const parsedLng = parseCoordinate(elem.lon ?? elem.center?.lon);
+
+          const lat = (parsedLat !== null && isValidCoordinate(parsedLat, queryLng)) ? parsedLat : queryLat;
+          const lng = (parsedLng !== null && isValidCoordinate(queryLat, parsedLng)) ? parsedLng : queryLng;
+
+          if (!isValidCoordinate(lat, lng)) {
+            return null;
+          }
+
           const tags = elem.tags || {};
 
-          // Hard Coordinate & Distance Validation from City Center (Max 25km radius)
+          // Distance check from city center
           const distFromCityCenter = calculateDistance(cityGeo.lat, cityGeo.lng, lat, lng).km;
-          if (distFromCityCenter > 25) {
-            // REJECT: Pharmacy is geographically located in a different city
+          if (distFromCityCenter > 30) {
             return null;
           }
 
@@ -101,7 +113,6 @@ export async function fetchNearbyPharmacies(
           const normPharmCity = normalizeCityName(rawCity);
 
           if (normPharmCity !== targetCity) {
-            // REJECT: City name tag does not match target city
             return null;
           }
 
@@ -116,7 +127,6 @@ export async function fetchNearbyPharmacies(
           const openingHoursRaw = tags.opening_hours || null;
           const isOpen247 = openingHoursRaw === '24/7' || tags['dispensing:24_7'] === 'yes';
 
-          // Match with official Duty Roster
           const matchedRoster = OFFICIAL_DUTY_ROSTERS.find(r => 
             normalizeCityName(r.city) === targetCity && 
             (r.pharmacyId.includes(elem.id) || name.toLowerCase().includes(r.city.toLowerCase()))
@@ -156,21 +166,23 @@ export async function fetchNearbyPharmacies(
         .filter((p: Pharmacy | null): p is Pharmacy => p !== null);
     }
 
-    // Combine with verified local city directory records
     const verifiedLocal = getVerifiedCityPharmacies(userLat, userLng, targetCity, cityGeo.lat, cityGeo.lng).pharmacies;
     const combinedMap = new Map<string, Pharmacy>();
 
-    livePharmacies.forEach(p => combinedMap.set(p.id, p));
+    livePharmacies.forEach(p => {
+      if (isValidCoordinate(p.lat, p.lng)) {
+        combinedMap.set(p.id, p);
+      }
+    });
+
     verifiedLocal.forEach(p => {
-      if (!combinedMap.has(p.id)) {
+      if (!combinedMap.has(p.id) && isValidCoordinate(p.lat, p.lng)) {
         combinedMap.set(p.id, p);
       }
     });
 
     const finalPharmacies = Array.from(combinedMap.values());
-
-    // Hard final city filter check before returning
-    const strictlyCityPharmacies = finalPharmacies.filter(p => normalizeCityName(p.city) === targetCity);
+    const strictlyCityPharmacies = finalPharmacies.filter(p => normalizeCityName(p.city) === targetCity && isValidCoordinate(p.lat, p.lng));
 
     if (strictlyCityPharmacies.length === 0) {
       return {
@@ -195,8 +207,8 @@ export async function fetchNearbyPharmacies(
  * Retrieve verified pharmacies strictly belonging to the requested city from the verified database.
  */
 function getVerifiedCityPharmacies(
-  userLat: number,
-  userLng: number,
+  userLat: number | null,
+  userLng: number | null,
   cityName: string,
   _cityCenterLat: number,
   _cityCenterLng: number,
@@ -204,13 +216,11 @@ function getVerifiedCityPharmacies(
 ): FetchPharmaciesResult {
   const targetCity = normalizeCityName(cityName);
 
-  // 1. Strict filtering against verified database: ONLY entries matching targetCity
   const matchingEntries = VERIFIED_MOROCCAN_PHARMACIES.filter(
-    p => normalizeCityName(p.city) === targetCity
+    p => normalizeCityName(p.city) === targetCity && isValidCoordinate(p.lat, p.lng)
   );
 
   if (matchingEntries.length === 0) {
-    // Honest UNKNOWN / NO VERIFIED DATA STATE when zero verified records exist for a city
     return {
       pharmacies: [],
       isFallback: true,
@@ -219,46 +229,56 @@ function getVerifiedCityPharmacies(
     };
   }
 
-  // 2. Map directory entries to Pharmacy application model
-  const pharmacies: Pharmacy[] = matchingEntries.map(entry => {
-    const matchedRoster = OFFICIAL_DUTY_ROSTERS.find(r => r.pharmacyId === entry.id);
-    const isOnDuty = !!matchedRoster && matchedRoster.dutyType !== 'UNKNOWN';
+  const pharmacies: Pharmacy[] = matchingEntries
+    .map(entry => {
+      const pLat = parseCoordinate(entry.lat);
+      const pLng = parseCoordinate(entry.lng);
 
-    const dist = calculateDistance(userLat, userLng, entry.lat, entry.lng);
+      if (pLat === null || pLng === null || !isValidCoordinate(pLat, pLng)) {
+        return null;
+      }
 
-    return {
-      id: entry.id,
-      name: entry.name,
-      address: entry.address,
-      city: targetCity,
-      phone: entry.phone,
-      lat: entry.lat,
-      lng: entry.lng,
-      source: entry.source,
-      confidenceLabel: entry.dataConfidence === 'VERIFIED' ? 'HIGH CONFIDENCE' : 'MEDIUM',
-      verifiedAt: entry.lastVerified,
-      dutyInfo: {
-        isOnDutyTonight: isOnDuty,
-        dutyType: isOnDuty ? (matchedRoster?.dutyType === '24H' ? '24h_duty' : 'night_shift') : 'none',
-        shiftStart: matchedRoster?.startTime || '20:00',
-        shiftEnd: matchedRoster?.endTime || '08:30',
-        dutyNote: matchedRoster ? `Roster: ${matchedRoster.source}` : undefined
-      },
-      openingHours: {
-        monday: { open: '08:30', close: '20:00' },
-        tuesday: { open: '08:30', close: '20:00' },
-        wednesday: { open: '08:30', close: '20:00' },
-        thursday: { open: '08:30', close: '20:00' },
-        friday: { open: '08:30', close: '20:00' },
-        saturday: { open: '09:00', close: '19:00' }
-      },
-      services: ['prescription', ...(isOnDuty ? ['night_bell' as ServiceType] : [])],
-      distanceMeters: dist.meters,
-      distanceKm: dist.km,
-      drivingTimeMin: dist.drivingMin,
-      walkingTimeMin: dist.walkingMin
-    };
-  });
+      const matchedRoster = OFFICIAL_DUTY_ROSTERS.find(r => r.pharmacyId === entry.id);
+      const isOnDuty = !!matchedRoster && matchedRoster.dutyType !== 'UNKNOWN';
+
+      const dist = (isValidCoordinate(userLat, userLng))
+        ? calculateDistance(userLat!, userLng!, pLat, pLng)
+        : { meters: 0, km: 0, drivingMin: 0, walkingMin: 0 };
+
+      return {
+        id: entry.id,
+        name: entry.name,
+        address: entry.address,
+        city: targetCity,
+        phone: entry.phone,
+        lat: pLat,
+        lng: pLng,
+        source: entry.source,
+        confidenceLabel: entry.dataConfidence === 'VERIFIED' ? 'HIGH CONFIDENCE' : 'MEDIUM',
+        verifiedAt: entry.lastVerified,
+        dutyInfo: {
+          isOnDutyTonight: isOnDuty,
+          dutyType: isOnDuty ? (matchedRoster?.dutyType === '24H' ? '24h_duty' : 'night_shift') : 'none',
+          shiftStart: matchedRoster?.startTime || '20:00',
+          shiftEnd: matchedRoster?.endTime || '08:30',
+          dutyNote: matchedRoster ? `Roster: ${matchedRoster.source}` : undefined
+        },
+        openingHours: {
+          monday: { open: '08:30', close: '20:00' },
+          tuesday: { open: '08:30', close: '20:00' },
+          wednesday: { open: '08:30', close: '20:00' },
+          thursday: { open: '08:30', close: '20:00' },
+          friday: { open: '08:30', close: '20:00' },
+          saturday: { open: '09:00', close: '19:00' }
+        },
+        services: ['prescription', ...(isOnDuty ? ['night_bell' as ServiceType] : [])],
+        distanceMeters: dist.meters,
+        distanceKm: dist.km,
+        drivingTimeMin: dist.drivingMin,
+        walkingTimeMin: dist.walkingMin
+      } as Pharmacy;
+    })
+    .filter((p: Pharmacy | null): p is Pharmacy => p !== null);
 
   return {
     pharmacies: rankPharmacies(pharmacies, userLat, userLng),
@@ -270,10 +290,15 @@ function getVerifiedCityPharmacies(
 /**
  * Rank pharmacies by: 1. Verified on-duty status, 2. Distance, 3. Reliability
  */
-function rankPharmacies(pharmacies: Pharmacy[], userLat: number, userLng: number): Pharmacy[] {
+function rankPharmacies(pharmacies: Pharmacy[], userLat: number | null, userLng: number | null): Pharmacy[] {
+  const hasUserCoords = isValidCoordinate(userLat, userLng);
+
   return pharmacies
+    .filter(p => isValidCoordinate(p.lat, p.lng))
     .map(p => {
-      const dist = calculateDistance(userLat, userLng, p.lat, p.lng);
+      const dist = hasUserCoords
+        ? calculateDistance(userLat!, userLng!, p.lat, p.lng)
+        : { meters: 0, km: 0, drivingMin: 0, walkingMin: 0 };
       return {
         ...p,
         distanceMeters: dist.meters,
@@ -283,11 +308,12 @@ function rankPharmacies(pharmacies: Pharmacy[], userLat: number, userLng: number
       };
     })
     .sort((a, b) => {
-      // 1. On duty first
       if (a.dutyInfo?.isOnDutyTonight && !b.dutyInfo?.isOnDutyTonight) return -1;
       if (!a.dutyInfo?.isOnDutyTonight && b.dutyInfo?.isOnDutyTonight) return 1;
 
-      // 2. Distance ranking
-      return (a.distanceKm || 0) - (b.distanceKm || 0);
+      if (hasUserCoords) {
+        return (a.distanceKm || 0) - (b.distanceKm || 0);
+      }
+      return a.name.localeCompare(b.name);
     });
 }

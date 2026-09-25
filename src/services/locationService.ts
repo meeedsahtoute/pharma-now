@@ -1,4 +1,5 @@
 import { MOROCCAN_CITIES_COORDINATES } from '../data/moroccanPharmaciesDatabase.ts';
+import { isValidCoordinate, parseCoordinate } from '../utils/coordinateUtils';
 
 export interface LocationResult {
   lat: number;
@@ -31,11 +32,21 @@ export function calculateDistance(
   lat2: number,
   lon2: number
 ): { meters: number; km: number; drivingMin: number; walkingMin: number } {
+  const pLat1 = parseCoordinate(lat1);
+  const pLon1 = parseCoordinate(lon1);
+  const pLat2 = parseCoordinate(lat2);
+  const pLon2 = parseCoordinate(lon2);
+
+  if (pLat1 === null || pLon1 === null || pLat2 === null || pLon2 === null ||
+      !isValidCoordinate(pLat1, pLon1) || !isValidCoordinate(pLat2, pLon2)) {
+    return { meters: 0, km: 0, drivingMin: 0, walkingMin: 0 };
+  }
+
   const R = 6371e3; // metres
-  const φ1 = (lat1 * Math.PI) / 180;
-  const φ2 = (lat2 * Math.PI) / 180;
-  const Δφ = ((lat2 - lat1) * Math.PI) / 180;
-  const Δλ = ((lon2 - lon1) * Math.PI) / 180;
+  const φ1 = (pLat1 * Math.PI) / 180;
+  const φ2 = (pLat2 * Math.PI) / 180;
+  const Δφ = ((pLat2 - pLat1) * Math.PI) / 180;
+  const Δλ = ((pLon2 - pLon1) * Math.PI) / 180;
 
   const a =
     Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
@@ -58,6 +69,10 @@ export async function reverseGeocodeCoords(lat: number, lng: number): Promise<{
   country: string;
   countryCode: string;
 }> {
+  if (!isValidCoordinate(lat, lng)) {
+    return { city: '', region: 'Morocco', country: 'Morocco', countryCode: 'MA' };
+  }
+
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 4000);
@@ -107,8 +122,12 @@ export function getCurrentUserPosition(timeoutMs = 8000): Promise<LocationResult
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
+        const lat = parseCoordinate(position.coords.latitude);
+        const lng = parseCoordinate(position.coords.longitude);
+
+        if (lat === null || lng === null || !isValidCoordinate(lat, lng)) {
+          return reject(new Error('Returned geolocation coordinates are invalid'));
+        }
 
         const geocoded = await reverseGeocodeCoords(lat, lng);
 
@@ -148,7 +167,11 @@ export function getDefaultCityLocation(cityName: string): { lat: number; lng: nu
     k => k.toLowerCase() === norm.toLowerCase()
   );
   if (foundKey) {
-    return MOROCCAN_CITIES_COORDINATES[foundKey];
+    const coords = MOROCCAN_CITIES_COORDINATES[foundKey];
+    if (isValidCoordinate(coords.lat, coords.lng)) {
+      return coords;
+    }
   }
-  return MOROCCAN_CITIES_COORDINATES['Oujda'] || { lat: 34.6814, lng: -1.9086 };
+  const defaultCoords = MOROCCAN_CITIES_COORDINATES['Casablanca'] || { lat: 33.589882, lng: -7.632145 };
+  return defaultCoords;
 }
